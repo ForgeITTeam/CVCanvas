@@ -1,9 +1,6 @@
 package main;
 
 import canvas.CVCanvas;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.opencv.core.Mat;
 
 public class sample1 extends CVCanvas
 {
