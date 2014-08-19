@@ -37,27 +37,31 @@ public abstract class CVCanvas extends JFrame
         System.loadLibrary("opencv_java247");
     }
     
+//<editor-fold defaultstate="collapsed" desc="Static Variables">
     /**
      * Drawing mode.
      */
     public final static int CORNER = 1;
-
+    
     /**
      * Drawing mode.
      */
     public final static int CENTER = 2;
-
+    
     /**
      * Drawing mode.
      */
     public final static int CORNERS = 3;
+//</editor-fold>
     
+//<editor-fold defaultstate="collapsed" desc="Window and Application">
     private final JLabel area;
     private volatile Mat mat;
     private volatile Mat matAux;
     private BufferedImage image;
     private byte[] data;
     private ScheduledExecutorService timerLoop;
+//</editor-fold>
 
     /**
      * The true frame rate of the sketch.
@@ -180,6 +184,25 @@ public abstract class CVCanvas extends JFrame
     }
 
     /**
+     * Returns the current time in milliseconds.
+     * @return The difference, measured in milliseconds, between the current time and midnight, January 1, 1970 UTC.
+     */
+    public long millis()
+    {
+        return System.currentTimeMillis();
+    }
+    
+    /**
+     * Gets the Mat image currently being drawn by CVCanvas.
+     * @return The Mat image of CVCanvas.
+     */
+    public Mat getCanvasMat()
+    {
+        return mat;
+    }
+        
+//<editor-fold defaultstate="collapsed" desc="Size">
+    /**
      * Sets the size of the Canvas.
      * @param s Size of the Canvas.
      */
@@ -207,12 +230,9 @@ public abstract class CVCanvas extends JFrame
         data = new byte[mat.cols() * mat.rows() * (int)mat.elemSize()];
         setLocationRelativeTo(null);
     }
+//</editor-fold>
     
-    public long millis()
-    {
-        return System.currentTimeMillis();
-    }
-    
+//<editor-fold defaultstate="collapsed" desc="Loop And FrameRate">
     /**
      * Stops the loop.
      */
@@ -237,13 +257,13 @@ public abstract class CVCanvas extends JFrame
             long timer[] = new long[10];
             int index = 0;
             boolean full = false;
-
+            
             @Override
             public void run()
             {
                 draw();
                 redraw();
-
+                
                 long aux = System.currentTimeMillis();
                 if(full)
                     frameRate = (10000/(float)(aux-timer[index]));
@@ -255,9 +275,9 @@ public abstract class CVCanvas extends JFrame
                     full = true;
                 }
             }
-        }, 1000, 1000/fps, TimeUnit.MILLISECONDS);
+        }, 0, 1000/fps, TimeUnit.MILLISECONDS);
     }
-
+    
     /**
      * Sets the sketch to the specified frame rate. It is not recommended to be called on loop function.
      * @param fps
@@ -267,6 +287,7 @@ public abstract class CVCanvas extends JFrame
         this.fps = fps;
         loop();
     }
+//</editor-fold>
     
 //<editor-fold defaultstate="collapsed" desc="Stroke">
 
