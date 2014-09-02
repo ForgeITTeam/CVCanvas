@@ -21,8 +21,8 @@ public class CVWindow extends JFrame
     private static final ArrayList<CVWindow> janelas = new ArrayList();
     
     /**
-     *
-     * @param name
+     * Creates a new window to display an OpenCV Mat.
+     * @param name The name of the window.
      */
     public static void create(String name)
     {
@@ -35,9 +35,9 @@ public class CVWindow extends JFrame
     }
     
     /**
-     *
-     * @param name
-     * @param r
+     * Sets a function that runs on close.
+     * @param name Name of the windon.
+     * @param r Function that runs on close.
      */
     public static void setOnClose(String name, Runnable r)
     {
@@ -52,8 +52,8 @@ public class CVWindow extends JFrame
     }
     
     /**
-     *
-     * @param name
+     * Destroy the window with the chosen name.
+     * @param name Name of the window to be destroyed.
      */
     public static void destroy(String name)
     {
@@ -68,7 +68,7 @@ public class CVWindow extends JFrame
     }
     
     /**
-     *
+     * Destroy all windows.
      */
     public static void destroyAll()
     {
@@ -88,9 +88,9 @@ public class CVWindow extends JFrame
     }
     
     /**
-     *
-     * @param name
-     * @param mat
+     * Update the window with a mat.
+     * @param name The name of the window.
+     * @param mat The OpenCV Mat to be displayed.
      * @return
      */
     public static boolean show(String name, Mat mat)
