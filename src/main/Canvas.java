@@ -16,43 +16,41 @@ public class Canvas
     
     public static void main(String[] args)
     {
-//        CVWindow.create("Depth");
-//        CVWindow.create("IR");
-//        
-//        Sensor3D sensor = new Sensor3D(0){
-//            
-//            @Override
-//            public void readDepth(Mat depthCam)
-//            {
-//                CVWindow.show("Depth", depthCam);
-//            }
-//            
-//            @Override
-//            public void readRGB(Mat rgbCam)
-//            {
-//                CVWindow.show("RGB", rgbCam);
-//            }
-//            
-//            @Override
-//            public void readIR(Mat irCam)
-//            {
-//                CVWindow.show("IR", irCam);
-//            }
-//        };
-//        
-//        sensor.depthCam.setSize(320, 240);
-//        sensor.depthCam.setFrameRate(60);
-//        
-//        sensor.IRCam.setSize(320, 240);
-//        sensor.IRCam.setFrameRate(60);
-//        
-//        sensor.start(Sensor3D.DEPTH);
-//        sensor.start(Sensor3D.IR);
-//        
-//        CVWindow.setOnClose("Depth", ()->{sensor.close();CVWindow.destroyAll();});
-//        CVWindow.setOnClose("IR", ()->{sensor.close();CVWindow.destroyAll();});
+        CVWindow.create("Depth");
+        CVWindow.create("IR");
         
-        new sample1();
+        Sensor3D sensor = new Sensor3D(0){
+            
+            @Override
+            public void readDepth(Mat depthCam)
+            {
+                CVWindow.show("Depth", depthCam);
+            }
+            
+            @Override
+            public void readRGB(Mat rgbCam)
+            {
+                CVWindow.show("RGB", rgbCam);
+            }
+            
+            @Override
+            public void readIR(Mat irCam)
+            {
+                CVWindow.show("IR", irCam);
+            }
+        };
+        
+        sensor.setSize(Sensor3D.DEPTH | Sensor3D.IR, 640, 480);
+        sensor.setFrameRate(Sensor3D.DEPTH | Sensor3D.IR, 30);
+        
+        sensor.start(Sensor3D.DEPTH | Sensor3D.IR);
+        
+        CVWindow.setOnClose("Depth", ()->{sensor.close();CVWindow.destroyAll();});
+        CVWindow.setOnClose("IR", ()->{sensor.close();CVWindow.destroyAll();});
+        
+        //new Sensor3DTest();
+        
+//        new sample1();
         
 //        Kinect2 k = new Kinect2();
 //        CVWindow.create("Kinect RGB");

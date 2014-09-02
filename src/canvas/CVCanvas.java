@@ -239,8 +239,11 @@ public abstract class CVCanvas extends JFrame
     public void noLoop()
     {
         loop = false;
-        timerLoop.shutdownNow();
-        while(!timerLoop.isShutdown());
+        if(timerLoop!=null)
+        {
+            timerLoop.shutdownNow();
+            while(!timerLoop.isShutdown());
+        }
     }
     
     /**

@@ -13,17 +13,17 @@ import org.openni.VideoFrameRef;
 import org.openni.VideoMode;
 import org.openni.VideoStream;
 
-public abstract class Sensor3D
+public class Sensor3D
 {
-    private Device sensor;
+    private final Device sensor;
     
-    public RGBCam RGBCam;
-    public DepthCam depthCam;
-    public IRCam IRCam;
+    private RGBCam RGBCam;
+    private DepthCam depthCam;
+    private IRCam IRCam;
     
-    public final static int RGB = 0;
-    public final static int DEPTH = 1;
-    public final static int IR = 2;
+    public final static int RGB = 1;
+    public final static int DEPTH = 2;
+    public final static int IR = 4;
     
     public Sensor3D(int i)
     {
@@ -41,54 +41,129 @@ public abstract class Sensor3D
         IRCam = new IRCam();
     }
     
-    public void start(int mode)
+    
+    
+    public void start(int modes)
     {
-        if(mode==RGB)
+        if((modes&RGB) == RGB)
             RGBCam.start();
-        else if(mode==DEPTH)
+        
+        if((modes&DEPTH) == DEPTH)
             depthCam.start();
-        else if(mode==IR)
+        
+        if((modes&IR) == IR)
             IRCam.start();
     }
     
+    public void setSize(int modes, int width, int height)
+    {
+        if((modes&RGB) == RGB)
+            RGBCam.setSize(width, height);
+        
+        if((modes&DEPTH) == DEPTH)
+            depthCam.setSize(width, height);
+        
+        if((modes&IR) == IR)
+            IRCam.setSize(width, height);
+    }
+    
+    public Size getSize(int mode)
+    {
+        if((mode&RGB) == RGB)
+            return RGBCam.getSize();
+        
+        if((mode&DEPTH) == DEPTH)
+            return depthCam.getSize();
+        
+        if((mode&IR) == IR)
+            return IRCam.getSize();
+        return null;
+    }
+    
+    public void setFrameRate(int modes, int fps)
+    {
+        if((modes&RGB) == RGB)
+            RGBCam.setFrameRate(fps);
+        
+        if((modes&DEPTH) == DEPTH)
+            depthCam.setFrameRate(fps);
+        
+        if((modes&IR) == IR)
+            IRCam.setFrameRate(fps);
+    }
+    
+    public int getFrameRate(int mode)
+    {
+        if((mode&RGB) == RGB)
+            return RGBCam.getFrameRate();
+        
+        if((mode&DEPTH) == DEPTH)
+            return depthCam.getFrameRate();
+        
+        if((mode&IR) == IR)
+            return IRCam.getFrameRate();
+        return -1;
+    }
+    
+    public void enableEvent(int modes, boolean evt)
+    {
+        if((modes&RGB) == RGB)
+            RGBCam.enableEvent(evt);
+        
+        if((modes&DEPTH) == DEPTH)
+            depthCam.enableEvent(evt);
+        
+        if((modes&IR) == IR)
+            IRCam.enableEvent(evt);
+    }
+    
+    
     public Mat getRGB()
     {
+        RGBCam.readFrame(RGBCam.video.readFrame());
         return RGBCam.image;
     }
     
     public Mat getDepth()
     {
+        depthCam.readFrame(depthCam.video.readFrame());
         return depthCam.image;
     }
     
     public Mat getIR()
     {
+        IRCam.readFrame(IRCam.video.readFrame());
         return IRCam.image;
     }
     
-    public abstract void readRGB(Mat RGBFrame);
-    public abstract void readDepth(Mat depthFrame);
-    public abstract void readIR(Mat IRFrame);
+    
+    public void readRGB(Mat RGBFrame){}
+    public void readDepth(Mat depthFrame){}
+    public void readIR(Mat IRFrame){}
+    
     
     public void close()
     {
         if(RGBCam.video != null)
         {
-            RGBCam.video.removeNewFrameListener(RGBCam);
+            if(RGBCam.event)
+                RGBCam.video.removeNewFrameListener(RGBCam);
             RGBCam.video.stop();
             RGBCam.video.destroy();
             RGBCam.video=null;
         }
         if(depthCam.video != null)
         {
-            depthCam.video.removeNewFrameListener(depthCam);
+            if(depthCam.event)
+                depthCam.video.removeNewFrameListener(depthCam);
             depthCam.video.stop();
             depthCam.video.destroy();
             depthCam.video=null;
         }
         if(IRCam.video != null)
         {
-            IRCam.video.removeNewFrameListener(IRCam);
+            if(IRCam.event)
+                IRCam.video.removeNewFrameListener(IRCam);
             IRCam.video.stop();
             IRCam.video.destroy();
             IRCam.video=null;
@@ -96,7 +171,7 @@ public abstract class Sensor3D
         sensor.close();
     }
     
-    public final class RGBCam implements VideoStream.NewFrameListener
+    private final class RGBCam implements VideoStream.NewFrameListener
     {
         private Mat image;
         private byte[] buffer;
@@ -104,11 +179,18 @@ public abstract class Sensor3D
         
         private Size size;
         private int fps;
+        private boolean event;
         
         public RGBCam()
         {
             setSize(640, 480);
             setFrameRate(30);
+            event = true;
+        }
+        
+        public void enableEvent(boolean evt)
+        {
+            event = evt;
         }
         
         public Size getSize()
@@ -141,26 +223,32 @@ public abstract class Sensor3D
             modeVideo.setResolution((int)size.width, (int)size.height);
             modeVideo.setFps(fps);
             modeVideo.setPixelFormat(PixelFormat.RGB888);
-            video.setVideoMode(modeVideo);
             
+            video.setVideoMode(modeVideo);
             video.addNewFrameListener(this);
+            if(!event)
+                video.removeNewFrameListener(this);
+            
             video.start();
         }
         
         @Override
         public synchronized void onFrameReady(VideoStream stream)
         {
-            VideoFrameRef lastFrame = stream.readFrame();
-            
+            readFrame(stream.readFrame());
+            readRGB(image);
+        }
+        
+        private void readFrame(VideoFrameRef lastFrame)
+        {
             lastFrame.getData().order(ByteOrder.LITTLE_ENDIAN).get(buffer);
             image.put(0, 0, buffer);
             Imgproc.cvtColor(image, image, Imgproc.COLOR_RGB2BGR);
             lastFrame.release();
-            readRGB(image);
         }
     }
     
-    public final class DepthCam implements VideoStream.NewFrameListener
+    private final class DepthCam implements VideoStream.NewFrameListener
     {
         private Mat image;
         private short[] buffer;
@@ -168,11 +256,19 @@ public abstract class Sensor3D
         
         private Size size;
         private int fps;
+        private boolean event;
+
 
         public DepthCam()
         {
             setSize(640, 480);
             setFrameRate(30);
+            event = true;
+        }
+        
+        public void enableEvent(boolean evt)
+        {
+            event = evt;
         }
         
         public Size getSize()
@@ -207,24 +303,28 @@ public abstract class Sensor3D
             modeDepth.setPixelFormat(PixelFormat.DEPTH_100_UM);
             
             video.setVideoMode(modeDepth);
-            
             video.addNewFrameListener(this);
+            if(!event)
+                video.removeNewFrameListener(this);
             video.start();
         }
         
         @Override
         public synchronized void onFrameReady(VideoStream stream)
         {
-            VideoFrameRef ref = stream.readFrame();
-            
-            ref.getData().order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(buffer);
-            image.put(0, 0, buffer);
-            ref.release();
+            readFrame(stream.readFrame());
             readDepth(image);
+        }
+        
+        private void readFrame(VideoFrameRef lastFrame)
+        {
+            lastFrame.getData().order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(buffer);
+            image.put(0, 0, buffer);
+            lastFrame.release();
         }
     }
     
-    public final class IRCam implements VideoStream.NewFrameListener
+    private final class IRCam implements VideoStream.NewFrameListener
     {
         public Mat image;
         private short[] buffer;
@@ -232,11 +332,19 @@ public abstract class Sensor3D
         
         private Size size;
         private int fps;
+        private boolean event;
+
 
         public IRCam()
         {
             setSize(640, 480);
             setFrameRate(30);
+            event = true;
+        }
+        
+        public void enableEvent(boolean evt)
+        {
+            event = evt;
         }
         
         public Size getSize()
@@ -271,21 +379,26 @@ public abstract class Sensor3D
             modeIR.setPixelFormat(PixelFormat.GRAY16);
             
             video.setVideoMode(modeIR);
-            
             video.addNewFrameListener(this);
+            if(!event)
+                video.removeNewFrameListener(this);
+            
             video.start();
         }
         
         @Override
         public synchronized void onFrameReady(VideoStream stream)
         {
-            VideoFrameRef ref = stream.readFrame();
-            
-            ref.getData().order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(buffer);
+            readFrame(stream.readFrame());
+            readIR(image);
+        }
+        
+        private void readFrame(VideoFrameRef lastFrame)
+        {
+            lastFrame.getData().order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(buffer);
             image.put(0, 0, buffer);
             image.convertTo(image, CvType.CV_16UC1, 255);
-            ref.release();
-            readIR(image);
+            lastFrame.release();
         }
     }
 }
