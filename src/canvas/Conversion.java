@@ -13,9 +13,9 @@ public class Conversion
 {
 
     /**
-     *
-     * @param src
-     * @param result
+     * Converts an OpenCV Mat to a BufferedImage. 
+     * @param src The source Mat.
+     * @param result The result Buffered Image
      */
     public static void Mat2BufferedImage(Mat src, BufferedImage result)
     {
@@ -102,9 +102,9 @@ public class Conversion
     }
     
     /**
-     *
-     * @param src
-     * @param result
+     * Converts an OpenCV Mat to aan OpenCV drawable Mat. A drawable Mat is a mat with 3 channels and with 8 bits for each channel.
+     * @param src The source Mat.
+     * @param result The result Mat.
      */
     public static void Mat2Drawable(Mat src, Mat result)
     {
